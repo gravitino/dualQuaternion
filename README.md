@@ -1,4 +1,4 @@
-quaternion
+dualQuaternion
 ==========
 
 out of the box quaternions for c++
