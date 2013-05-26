@@ -73,13 +73,13 @@ template<class T> quat<T> quat<T> ::log(){
     return quat<T> (::log(qnorm), x*angle, y*angle, z*angle);
 }
 
-template<class T> quat<T> quat<T> ::exp(){
+template<class T> quat<T> quat<T> ::exp(T prec=0){
 
     quat<T> sum = quat<T>();
     quat<T> pow = *this;
     unsigned int i = 1;
     
-    while (pow.dot(pow) > 0) {
+    while (pow.dot(pow) > prec) {
         
         sum = sum.add(pow);
         pow = pow.mul(*this).sdiv(++i);
@@ -180,18 +180,29 @@ template<class T> dualQuat<T> dualQuat<T> ::project(){
     return *this;
 }
 
-template<class T> dualQuat<T> dualQuat<T> ::log(){
+template<class T> dualQuat<T> dualQuat<T> ::log(T prec=0){
 
-    return dualQuat<T> (q.log(), Q.mul(q.inverse()));
+    dualQuat<T> sum = dualQuat<T>(0, 0, 0, 0, 0, 0, 0, 0);
+    dualQuat<T> pow = (*this).sub(dualQuat<T>());
+    dualQuat<T> fac = (*this).sub(dualQuat<T>()).smul(-1);
+    unsigned int i = 0;
+    
+    while (pow.dot(pow) > prec) {
+        
+        sum = sum.add(pow.sdiv(++i));
+        pow = pow.mul(fac);
+    }
+    
+    return sum;
 }
 
-template<class T> dualQuat<T> dualQuat<T> ::exp(){
+template<class T> dualQuat<T> dualQuat<T> ::exp(T prec=0){
 
     dualQuat<T> sum = dualQuat<T>();
     dualQuat<T> pow = *this;
     unsigned int i = 1;
     
-    while (pow.dot(pow) > 0) {
+    while (pow.dot(pow) > prec) {
         
         sum = sum.add(pow);
         pow = pow.mul(*this).sdiv(++i);
@@ -213,9 +224,7 @@ int main() {
     std::cout << "R*x+T:    "; Q.mul(x).mul(Q.fullConjugate()).print();
     std::cout << std::endl;
     
-    
     // inverse
-    Q = dualQuat<double> (1, 2, 3, 4, 5, 6, 7, 8);
     std::cout << "Q*Q^(-1):        "; Q.mul(Q.inverse()).print();
     std::cout << "Qnorm*Qnorm^(*): "; Q.normalize().mul(Q.normalize().compConjugate()).print();
     std::cout << std::endl;
@@ -225,8 +234,8 @@ int main() {
     std::cout << "exp(log(q))=q:   "; Q.q.log().exp().print();
     std::cout << std::endl;
     
-    std::cout << "dual quat Q:      "; Q.print();
-    std::cout << "exp(log(Q)) != Q: "; Q.log().exp().print();
+    std::cout << "dual quat Q:     "; Q.print();
+    std::cout << "exp(log(Q)) = Q: "; Q.log().exp().print();
     std::cout << std::endl;
 }
 

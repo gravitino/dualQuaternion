@@ -29,7 +29,7 @@ template<class T> class quat {
         quat<T> inverse();          // inverse quat
         quat<T> normalize();        // project onto unit sphere
         quat<T> project();          // project onto upper plane
-        quat<T> exp();              // exponential map
+        quat<T> exp(T);             // exponential map
         quat<T> log();              // logarithm map
 
 };
@@ -63,7 +63,8 @@ template<class T> class dualQuat {
         dualQuat<T> inverse();              // inverse quat
         dualQuat<T> normalize();            // project onto unit sphere
         dualQuat<T> project();              // project onto upper plane
-        dualQuat<T> exp();                  // exponential map
-        dualQuat<T> log();                  // logarithm map
+        dualQuat<T> exp(T);                 // exponential map
+        dualQuat<T> log(T);                 // logarithm map
+
 };
 #endif
