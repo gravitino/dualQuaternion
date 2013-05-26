@@ -237,5 +237,25 @@ int main() {
     std::cout << "dual quat Q:     "; Q.print();
     std::cout << "exp(log(Q)) = Q: "; Q.log().exp().print();
     std::cout << std::endl;
+    
+    
+    // parametrize a curve
+    std::cout << "parametrize a curve of rotations" << std::endl;
+    
+    quat<double> initial = quat<double>(1, 0, 0, 0).log();
+    quat<double> final =  quat<double>(0, 0, 0, 1).log();
+    unsigned int N = 10;
+    
+    for (unsigned int i = 0; i < N+1; ++i)
+        final.smul(i*1.0/N).add(initial.smul(1-i*1.0/N)).exp().print();
+    std::cout << std::endl;
+    
+    
+    // calculate length of quarter equator
+    std::cout << "calculate length of quarter equator on S^3" << std::endl;
+    
+    quat<double> delta = initial.sub(final);
+    std::cout << "L = " << sqrt(delta.dot(delta))/3.141592 << "pi" << std::endl;
+    
 }
 
