@@ -1,35 +1,69 @@
-#ifndef __QUATERNION_H__
-#define __QUATERNION_H__
+#ifndef __quat_H__
+#define __quat_H__
 
 #include <iostream>
 #include <cmath>
 
-template<class T> class quaternion {
+template<class T> class quat {
 
     public:
         T w, x, y, z;
 
         // constructors
-        quaternion();                     // default constructor
-        quaternion(T, T, T, T);           // custom constructor
+        quat();                     // default constructor
+        quat(T, T, T, T);           // custom constructor
         
         // convenience stuff
-        void print();                     // print out quaternion to shell
+        void print();                     // print out quat
         
-        // interaction with scalars and quaternions
-        quaternion<T> smul(T);            // multiplication with scalar
-        quaternion<T> sdiv(T);            // division by scalar
-        quaternion<T> mul(quaternion<T>); // exterior clifford product
-        quaternion<T> add(quaternion<T>); // componentwise addition
-        quaternion<T> sub(quaternion<T>); // componentwise substraction
-        T dot (quaternion<T>);            // inner product
+        // interaction with scalars and quats
+        quat<T> smul(T);            // multiplication with scalar
+        quat<T> sdiv(T);            // division by scalar
+        quat<T> mul(quat<T>); // exterior clifford product
+        quat<T> add(quat<T>); // componentwise addition
+        quat<T> sub(quat<T>); // componentwise substraction
+        T dot (quat<T>);            // inner product
         
         // self interaction
-        quaternion<T> conjugate();        // conjugation
-        quaternion<T> inverse();          // inverse quaternion
-        quaternion<T> normalize();        // project onto unit sphere S^3
-        quaternion<T> project();          // project onto upper half plane in R^4
+        quat<T> conjugate();        // conjugation
+        quat<T> inverse();          // inverse quat
+        quat<T> normalize();        // project onto unit sphere
+        quat<T> project();          // project onto upper plane
+        quat<T> exp();              // exponential map
+        quat<T> log();              // logarithm map
 
 };
 
+
+template<class T> class dualQuat {
+
+    public:
+        quat<T> q, Q;
+
+        // constructors
+        dualQuat();                         // default constructor
+        dualQuat(T, T, T, T, T, T, T, T);   // custom constructor
+        dualQuat(quat<T>, quat<T>);
+        
+        // convenience stuff
+        void print();                             // print out quat
+        
+        // interaction with scalars and quats
+        dualQuat<T> smul(T);                // multiplication with scalar
+        dualQuat<T> sdiv(T);                // division by scalar
+        dualQuat<T> mul(dualQuat<T>);       // exterior clifford product
+        dualQuat<T> add(dualQuat<T>);       // componentwise addition
+        dualQuat<T> sub(dualQuat<T>);       // componentwise substraction
+        T dot (dualQuat<T>);                // inner product
+        
+        // self interaction
+        dualQuat<T> fullConjugate();        // dual and complex conjugation
+        dualQuat<T> compConjugate();        // complex conjugation
+        dualQuat<T> dualConjugate();        // dual conjugation
+        dualQuat<T> inverse();              // inverse quat
+        dualQuat<T> normalize();            // project onto unit sphere
+        dualQuat<T> project();              // project onto upper plane
+        dualQuat<T> exp();                  // exponential map
+        dualQuat<T> log();                  // logarithm map
+};
 #endif
