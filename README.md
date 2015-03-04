@@ -1,7 +1,9 @@
 dualQuaternion
 ==========
 
-out of the box quaternions for c++
+out of the box quaternions for C++
 
-o quaternions with logarithm and exponential map
-o dual quaternions with logarithm and exponential map
+- quaternions with logarithm and exponential map
+- dual quaternions with logarithm and exponential map
+- metrics on SO(3) and SE(3) using logarithms
+- build with make
