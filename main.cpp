@@ -6,7 +6,6 @@
 
 int main () {
 
-
     std::mt19937 engine;
     engine.seed(0);
     std::uniform_real_distribution<double> dist(-1, 1);

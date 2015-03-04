@@ -5,9 +5,28 @@
 #include <iostream>
 #include <limits>
 #include <cmath>
+
+#include <immintrin.h> 
 #include <assert.h>
 
 #define EPS(value_t) (std::numeric_limits<value_t>::epsilon())
+
+template <class value_t>
+inline value_t rsqrt(value_t x) {
+    return 1.0/std::sqrt(x);
+}
+
+/* feel free to substitute AVX variants
+template <>
+inline float rsqrt(float x) {
+    return 1.0/std::sqrt(x);
+}
+
+template <>
+inline double rsqrt(double x) {
+    return 1.0/std::sqrt(x);
+}
+*/
 
 template <class value_t>
 struct quat {
@@ -111,7 +130,7 @@ struct quat {
 
         assert(isunit());
 
-        const value_t inv = 1.0/sqrt(x*x+y*y+z*z+EPS(value_t));
+        const value_t inv = rsqrt(x*x+y*y+z*z+EPS(value_t));
         const value_t fac = std::acos(w > 1 ? 1 : w < -1 ? -1 : w)*inv;
 
         return quat<value_t> (0, x*fac, y*fac, z*fac);
@@ -265,7 +284,7 @@ struct dualquat {
         const value_t qq = w*w+x*x+y*y+z*z+EPS(value_t);
         const value_t qQ = w*W+x*X+y*Y+z*Z;
         const value_t invqq = 1.0/qq;
-        const value_t invsq = 1.0/std::sqrt(qq);
+        const value_t invsq = rsqrt(qq);
         const value_t alpha = qQ*invqq*invqq;
 
         return dualquat<value_t>(w*invsq, x*invsq, 
@@ -346,7 +365,7 @@ struct dualquat {
         assert(isunit());
         
         const value_t theta =  2.0*std::acos(w > 1 ? 1 : w < -1 ? -1 : w);
-        const value_t invvv =  0.5/std::sqrt(x*x+y*y+z*z+EPS(value_t));
+        const value_t invvv =  0.5*rsqrt(x*x+y*y+z*z+EPS(value_t));
         const value_t pitch = -4.0*W*invvv;
         const value_t alpha =  pitch*w;
 
