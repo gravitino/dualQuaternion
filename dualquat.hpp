@@ -87,7 +87,7 @@ struct quat {
 
         assert(w*w < EPS(value_t));
 
-        value_t dst = std::sqrt(x*x+y*y+z*z);
+        value_t dst = std::sqrt(x*x+y*y+z*z+EPS(value_t));
         value_t fac = std::sin(dst)/dst;        
 
         return quat<value_t>(std::cos(dst), x*fac, y*fac, z*fac);
