@@ -1,5 +1,5 @@
 CC    = g++
-FLAGS = -std=c++11 -O3
+FLAGS = -std=c++11 -O3 -Wall
 
 all: testit fasttestit
 
