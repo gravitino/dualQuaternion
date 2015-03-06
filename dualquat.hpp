@@ -3,6 +3,7 @@
 #define DUALQUAT_HPP
 
 #include <iostream>
+#include <vector>
 #include <limits>
 #include <cmath>
 
@@ -402,7 +403,7 @@ struct dualquat {
 
     value_t baddist (const dualquat<value_t>& other) const {
 
-        const bool I_know_what_I_do = false;
+        const bool I_know_what_I_do = true;
         assert(I_know_what_I_do);
 
         // TODO: could still be errornous
@@ -426,4 +427,200 @@ struct dualquat {
 
 };
 
+
+namespace average {
+
+template <class value_t>
+quat<value_t> QLA (const std::vector<quat<value_t>>& quats) {
+
+    quat<value_t> result(0, 0, 0, 0);
+
+    for (size_t i = 0; i < quats.size(); i++)
+        result += quats[i];
+
+    return result.N();
+}
+
+template <class value_t>
+quat<value_t> QIA (const std::vector<quat<value_t>>& quats) {
+
+    quat<value_t> b = QLA(quats);
+    
+    auto logmean = [&]() {
+        quat<value_t> avg(0, 0, 0, 0);
+        for (size_t i = 0; i < quats.size(); i++)
+            avg += (b.C()^quats[i]).log();
+        return avg/quats.size();
+    };
+
+    auto x = logmean();
+    auto norm = x.dot(x);
+
+    for(;;){
+        
+        b ^= x.exp();
+        auto xnew = logmean();
+
+        const auto newnorm = xnew.dot(xnew);
+        if(norm < newnorm || newnorm < EPS(value_t))
+            break;
+        else {
+            x = xnew;
+            norm = newnorm;
+        }
+    }
+    
+    return b;
+}
+
+template <class value_t>
+quat<value_t> QLB (const std::vector<quat<value_t>>& quats, 
+                   const std::vector<value_t>& weights) {
+
+    assert(quats.size() == weights.size());
+
+    quat<value_t> result(0, 0, 0, 0);
+
+    for (size_t i = 0; i < quats.size(); i++)
+        result += quats[i]*weights[i];
+
+    return result.N();
+}
+
+template <class value_t>
+quat<value_t> QIB (const std::vector<quat<value_t>>& quats, 
+                   const std::vector<value_t>& weights) {
+
+
+    assert(quats.size() == weights.size());
+
+    quat<value_t> b = QLB(quats, weights);
+    
+    auto logmean = [&]() {
+        quat<value_t> avg(0, 0, 0, 0);
+        for (size_t i = 0; i < quats.size(); i++)
+            avg += ((b.C())^quats[i]).log()*weights[i];
+        return avg;
+    };
+   
+    auto x = logmean();
+    auto norm = x.dot(x);
+
+    for(;;){
+        
+        b ^= x.exp();
+        auto xnew = logmean();
+
+        const auto newnorm = xnew.dot(xnew);
+        if(norm < newnorm || newnorm < EPS(value_t))
+            break;
+        else {
+            x = xnew;
+            norm = newnorm;
+        }
+    }    
+    
+    return b;
+}
+
+template <class value_t>
+dualquat<value_t> DLA (const std::vector<dualquat<value_t>>& quats) {
+
+    dualquat<value_t> result(0, 0, 0, 0, 0, 0, 0, 0);
+
+    for (size_t i = 0; i < quats.size(); i++)
+        result += quats[i];
+
+    return (result/quats.size()).N();
+}
+
+template <class value_t>
+dualquat<value_t> DIA (const std::vector<dualquat<value_t>>& quats) {
+
+    dualquat<value_t> b = DLA(quats);
+    
+    auto logmean = [&]() {
+        dualquat<value_t> avg(0, 0, 0, 0, 0, 0, 0, 0);
+        for (size_t i = 0; i < quats.size(); i++)
+            avg += (b.C()^quats[i]).log();
+        return avg/quats.size();
+    };
+
+    auto x = logmean();
+    auto norm = x.dot(x);
+
+    for(;;){
+        
+        b ^= x.numexp();
+        auto xnew = logmean();
+
+        const auto newnorm = xnew.dot(xnew);
+        if(norm < newnorm || newnorm < EPS(value_t))
+            break;
+        else {
+            x = xnew;
+            norm = newnorm;
+        }
+    }
+
+    // std::cout << "precision: " << norm << std::endl;  
+    
+    return b;
+}
+
+template <class value_t>
+dualquat<value_t> DLB (const std::vector<dualquat<value_t>>& quats, 
+                       const std::vector<value_t>& weights) {
+
+    assert(quats.size() == weights.size());
+
+    dualquat<value_t> result(0, 0, 0, 0, 0, 0, 0, 0);
+
+    for (size_t i = 0; i < quats.size(); i++)
+        result += quats[i]*weights[i];
+
+    return result.N();
+}
+
+template <class value_t>
+dualquat<value_t> DIB (const std::vector<dualquat<value_t>>& quats, 
+                       const std::vector<value_t>& weights) {
+
+
+    assert(quats.size() == weights.size());
+
+    dualquat<value_t> b = DLB(quats, weights);
+    
+    auto logmean = [&]() {
+        dualquat<value_t> avg(0, 0, 0, 0, 0, 0, 0, 0);
+        for (size_t i = 0; i < quats.size(); i++)
+            avg += ((b.C())^quats[i]).log()*weights[i];
+        return avg;
+    };
+   
+    auto x = logmean();
+    auto norm = x.dot(x);
+
+    for(;;){
+        
+        b ^= x.numexp();
+        auto xnew = logmean();
+
+        const auto newnorm = xnew.dot(xnew);
+        if(norm < newnorm || newnorm < EPS(value_t))
+            break;
+        else {
+            x = xnew;
+            norm = newnorm;
+        }
+
+    }
+
+    // std::cout << "precision: " << norm << std::endl;    
+    
+    return b;
+}
+
+
+}
 #endif

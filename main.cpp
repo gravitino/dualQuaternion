@@ -134,9 +134,10 @@ int main () {
         }
     
         const double eucdist = Q.eucdist(Q*(-1.0)),
-                     logdist = Q.logdist(Q*(-1.0));
+                     logdist = Q.logdist(Q*(-1.0)),
+                     baddist = Q.logdist(Q*(-1.0));
     
-        if (eucdist > THRESHOLD || logdist > THRESHOLD)
+        if (eucdist > THRESHOLD || logdist > THRESHOLD || baddist > THRESHOLD)
             std::cout << "distances: " <<  eucdist << ", " << logdist << std::endl;
 
     }
