@@ -148,20 +148,6 @@ struct quat {
         return difference.dot(difference);
     }
 
-    value_t baddist (const quat<value_t>& other) const {
-
-        const bool I_know_what_I_do = false;
-        assert(I_know_what_I_do);
-
-        if (dot(other) < 0.0) {
-            const auto& difference = log()-(other*(-1.0)).log();
-            return difference.dot(difference);  
-        }
-
-        const auto& difference = log()-other.log();
-        return difference.dot(difference);
-    }
-
     bool isunit () const {
         const value_t residue = w*w+x*x+y*y+z*z-1.0;
         return residue*residue < EPS(value_t);
@@ -384,6 +370,18 @@ struct dualquat {
         return generator.dot(generator);
     }
 
+    value_t kinnorm () const {
+        const auto& Omega = real().log();
+        const auto& Veloc = dual()^real().C();
+        return Omega.dot(Omega)+Veloc.dot(Veloc);
+    }
+
+    value_t kilnorm () const {
+        const auto& Omega = real().log();
+        const auto& Veloc = dual()^real().C();
+        return Omega.dot(Omega)+2*Veloc.dot(Omega);
+    }
+
     value_t eucdist (const dualquat<value_t>& other) const {
         
         // TODO: could still be errornous
@@ -398,21 +396,6 @@ struct dualquat {
 
     value_t logdist (const dualquat<value_t>& other) const {
         const auto& difference = ((*this)^(other.C())).log();
-        return difference.dot(difference);
-    }
-
-    value_t baddist (const dualquat<value_t>& other) const {
-
-        const bool I_know_what_I_do = true;
-        assert(I_know_what_I_do);
-
-        // TODO: could still be errornous
-        if (dot(other) < 0.0) {
-            const auto& difference = log()-(other*(-1.0)).log();
-            return difference.dot(difference);  
-        }
-
-        const auto& difference = log()-other.log();
         return difference.dot(difference);
     }
 
