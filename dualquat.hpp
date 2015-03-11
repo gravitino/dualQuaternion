@@ -49,15 +49,15 @@ struct quat {
         return *this;
     }
 
-    quat<value_t> operator^(const quat<value_t>& other) const {
+    quat<value_t> operator*(const quat<value_t>& other) const {
         return quat<value_t>(w*other.w-x*other.x-y*other.y-z*other.z,
                              w*other.x+other.w*x+y*other.z-z*other.y,
                              w*other.y+other.w*y+z*other.x-x*other.z,
                              w*other.z+other.w*z+x*other.y-y*other.x);
     }
 
-    quat<value_t>& operator^=(const quat<value_t>& other) {
-        *this = (*this)^other;
+    quat<value_t>& operator*=(const quat<value_t>& other) {
+        *this = (*this)*other;
         return *this;
     }
 
@@ -102,7 +102,7 @@ struct quat {
         size_t i = 1;
 
         while (pow.dot(pow) > eps) {
-            pow ^= (*this)/i++;
+            pow *= (*this)/i++;
             sum += pow;
         }
 
@@ -144,7 +144,7 @@ struct quat {
     }
 
     value_t logdist (const quat<value_t>& other) const {
-        const auto& difference = ((*this)^(other.C())).log();
+        const auto& difference = ((*this)*(other.C())).log();
         return difference.dot(difference);
     }
 
@@ -219,18 +219,18 @@ struct dualquat {
     }
 
     // TODO: expand this
-    dualquat<value_t> operator^(const dualquat<value_t>& other) const {
+    dualquat<value_t> operator*(const dualquat<value_t>& other) const {
 
         const auto& a = real();
         const auto& A = dual();
         const auto& b = other.real();
         const auto& B = other.dual();
 
-        return dualquat<value_t>(a^b, (a^B)+(A^b));
+        return dualquat<value_t>(a*b, (a*B)+(A*b));
     }
 
-    dualquat<value_t>& operator^=(const dualquat<value_t>& other) {
-        *this = (*this)^other;
+    dualquat<value_t>& operator*=(const dualquat<value_t>& other) {
+        *this = (*this)*other;
         return *this;
     }
 
@@ -254,12 +254,12 @@ struct dualquat {
         const value_t qQ = w*W+x*X+y*Y+z*Z;
         const value_t invqq = 1.0/qq;
         const value_t invsq = 1.0/std::sqrt(qq);
-        const value_t alpha = qQ*invqq*invqq;
+        const value_t alpha = qQ*invqq*invsq;
 
         return dualquat<value_t>(w*invsq, x*invsq, 
                                  y*invsq, z*invsq,
-                                 W*invqq-w*alpha, X*invqq-x*alpha,
-                                 Y*invqq-y*alpha, Z*invqq-z*alpha);
+                                 W*invsq-w*alpha, X*invsq-x*alpha,
+                                 Y*invsq-y*alpha, Z*invsq-z*alpha);
     }
 
     dualquat<value_t> C() const {
@@ -322,7 +322,7 @@ struct dualquat {
         size_t i = 1;
 
         while (pow.dot(pow) > eps) {
-            pow ^= (*this)/i++;
+            pow *= (*this)/i++;
             sum += pow;
         }
 
@@ -372,13 +372,13 @@ struct dualquat {
 
     value_t kinnorm () const {
         const auto& Omega = real().log();
-        const auto& Veloc = dual()^real().C();
+        const auto& Veloc = dual()*real().C();
         return Omega.dot(Omega)+Veloc.dot(Veloc);
     }
 
     value_t kilnorm () const {
         const auto& Omega = real().log();
-        const auto& Veloc = dual()^real().C();
+        const auto& Veloc = dual()*real().C();
         return Omega.dot(Omega)+2*Veloc.dot(Omega);
     }
 
@@ -395,7 +395,7 @@ struct dualquat {
     }
 
     value_t logdist (const dualquat<value_t>& other) const {
-        const auto& difference = ((*this)^(other.C())).log();
+        const auto& difference = ((*this)*(other.C())).log();
         return difference.dot(difference);
     }
 
@@ -432,7 +432,7 @@ quat<value_t> QIA (const std::vector<quat<value_t>>& quats) {
     auto logmean = [&]() {
         quat<value_t> avg(0, 0, 0, 0);
         for (size_t i = 0; i < quats.size(); i++)
-            avg += (b.C()^quats[i]).log();
+            avg += (b.C()*quats[i]).log();
         return avg/quats.size();
     };
 
@@ -441,7 +441,7 @@ quat<value_t> QIA (const std::vector<quat<value_t>>& quats) {
 
     for(;;){
         
-        b ^= x.exp();
+        b *= x.exp();
         auto xnew = logmean();
 
         const auto newnorm = xnew.dot(xnew);
@@ -482,7 +482,7 @@ quat<value_t> QIB (const std::vector<quat<value_t>>& quats,
     auto logmean = [&]() {
         quat<value_t> avg(0, 0, 0, 0);
         for (size_t i = 0; i < quats.size(); i++)
-            avg += ((b.C())^quats[i]).log()*weights[i];
+            avg += ((b.C())*quats[i]).log()*weights[i];
         return avg;
     };
    
@@ -491,7 +491,7 @@ quat<value_t> QIB (const std::vector<quat<value_t>>& quats,
 
     for(;;){
         
-        b ^= x.exp();
+        b *= x.exp();
         auto xnew = logmean();
 
         const auto newnorm = xnew.dot(xnew);
@@ -514,7 +514,7 @@ dualquat<value_t> DLA (const std::vector<dualquat<value_t>>& quats) {
     for (size_t i = 0; i < quats.size(); i++)
         result += quats[i];
 
-    return (result/quats.size()).N();
+    return (result).N();
 }
 
 template <class value_t>
@@ -525,7 +525,7 @@ dualquat<value_t> DIA (const std::vector<dualquat<value_t>>& quats) {
     auto logmean = [&]() {
         dualquat<value_t> avg(0, 0, 0, 0, 0, 0, 0, 0);
         for (size_t i = 0; i < quats.size(); i++)
-            avg += (b.C()^quats[i]).log();
+            avg += (b.C()*quats[i]).log();
         return avg/quats.size();
     };
 
@@ -534,7 +534,7 @@ dualquat<value_t> DIA (const std::vector<dualquat<value_t>>& quats) {
 
     for(;;){
         
-        b ^= x.numexp();
+        b *= x.numexp();
         auto xnew = logmean();
 
         const auto newnorm = xnew.dot(xnew);
@@ -577,7 +577,7 @@ dualquat<value_t> DIB (const std::vector<dualquat<value_t>>& quats,
     auto logmean = [&]() {
         dualquat<value_t> avg(0, 0, 0, 0, 0, 0, 0, 0);
         for (size_t i = 0; i < quats.size(); i++)
-            avg += ((b.C())^quats[i]).log()*weights[i];
+            avg += ((b.C())*quats[i]).log()*weights[i];
         return avg;
     };
    
@@ -586,7 +586,7 @@ dualquat<value_t> DIB (const std::vector<dualquat<value_t>>& quats,
 
     for(;;){
         
-        b ^= x.numexp();
+        b *= x.numexp();
         auto xnew = logmean();
 
         const auto newnorm = xnew.dot(xnew);

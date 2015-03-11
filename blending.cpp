@@ -3,57 +3,6 @@
 
 int main () {
 
-/*
-	dualquat<double> Q (0, 0, 0, 0, 0, 0, 0, 0); Q=Q.exp(); Q.print();
-	dualquat<double> T (1, 0, 0, 0, 0, 1, 1, 1); T=T.N(); T.print();
-
-	auto A = T^Q; A.print();
-	std::cout << A.lognorm() << std::endl;
-
-	auto B = T^T^Q; B.print();
-	std::cout << B.lognorm() << std::endl;
-
-	auto C = T^T^T^Q; B.print();
-	std::cout << C.lognorm() << std::endl;
-
-	auto D = T^T^T^T^Q; D.print();
-	std::cout << D.lognorm() << std::endl;
-*/
-
-/*
-	dualquat<double> Q (0, M_PI, M_PI, M_PI, 0, 0, 0, 0); Q=Q.exp(); Q.print();
-	dualquat<double> T (1, 0, 0, 0, 0, 0, 0, 0); T=T.N(); T.print();
-
-	auto A = T^Q; A.print();
-	std::cout << A.lognorm() << std::endl;
-
-	auto B = T^Q^Q; B.print();
-	std::cout << B.lognorm() << std::endl;
-
-	auto C = T^Q^Q^Q; B.print();
-	std::cout << C.lognorm() << std::endl;
-
-	auto D = T^Q^Q^Q^Q; D.print();
-	std::cout << D.lognorm() << std::endl;
-*/
-
-/*
-	dualquat<double> Q (0, M_PI, M_PI, M_PI, 0, 0, 0, 0); Q=Q.exp(); Q.print();
-	dualquat<double> T (1, 0, 0, 0, 0, 1, 1, 1); T=T.N(); T.print();
-
-	auto A = T^Q; A.print();
-	std::cout << A.lognorm() << std::endl;
-
-	auto B = T^T^Q^Q; B.print();
-	std::cout << B.lognorm() << std::endl;
-
-	auto C = T^T^T^Q^Q^Q; B.print();
-	std::cout << C.lognorm() << std::endl;
-
-	auto D = T^T^T^T^Q^Q^Q^Q; D.print();
-	std::cout << D.lognorm() << std::endl;
-*/
-
 	using namespace average;
 
     std::mt19937 engine;
@@ -68,7 +17,7 @@ int main () {
     std::vector<quat<double>> quats;
 
     for (size_t i = 0; i < N; i++)
-    	quats.push_back( q0^quat<double>(1+dist(engine), dist(engine), 
+    	quats.push_back( q0*quat<double>(1+dist(engine), dist(engine), 
     		                               dist(engine), dist(engine)).N());
 
     QLA(quats).print();
@@ -87,7 +36,7 @@ int main () {
     std::vector<dualquat<double>> Quats;
 
     for (size_t i = 0; i < N; i++)
-    	Quats.push_back(Q0^dualquat<double>(1+dist(engine), dist(engine), 
+    	Quats.push_back(Q0*dualquat<double>(1+dist(engine), dist(engine), 
     		                                  dist(engine), dist(engine),
     		                                  dist(engine), dist(engine),
     		                                  dist(engine), dist(engine)).N());

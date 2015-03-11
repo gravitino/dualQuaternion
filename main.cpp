@@ -27,28 +27,28 @@ int main () {
         }
 
         // check left inverse
-        R = (Q.I()^Q)-quat<double>();
+        R = (Q.I()*Q)-quat<double>();
         if (R.dot(R) > THRESHOLD) {
             std::cout << "left inverse" << R.dot(R) << std::endl;
             R.print();
         }
 
         // check right inverse
-        R = (Q^Q.I())-quat<double>();
+        R = (Q*Q.I())-quat<double>();
         if (R.dot(R) > THRESHOLD) {
             std::cout << "right inverse" << R.dot(R) << std::endl;
             R.print();
         }
 
         // check left conjugate inverse
-        R = (Q.C()^Q)-quat<double>();
+        R = (Q.C()*Q)-quat<double>();
         if (R.dot(R) > THRESHOLD) {
             std::cout << "left conjugate inverse" << R.dot(R) << std::endl;
             R.print();
         }
 
         // check right conjugate inverse
-        R = (Q^Q.C())-quat<double>();
+        R = (Q*Q.C())-quat<double>();
         if (R.dot(R) > THRESHOLD) {
             std::cout << "right conjugate inverse" << R.dot(R) << std::endl;
             R.print();
@@ -93,28 +93,28 @@ int main () {
         }
 
         // check left inverse
-        R = (Q.I()^Q)-dualquat<double>();
+        R = (Q.I()*Q)-dualquat<double>();
         if (R.dot(R) > THRESHOLD) {
             std::cout << "left inverse" << R.dot(R) << std::endl;
             R.print();
         }
 
         // check right inverse
-        R = (Q^Q.I())-dualquat<double>();
+        R = (Q*Q.I())-dualquat<double>();
         if (R.dot(R) > THRESHOLD) {
             std::cout << "right inverse" << R.dot(R) << std::endl;
             R.print();
         }
 
         // check left conjugate inverse
-        R = (Q.C()^Q)-dualquat<double>();
+        R = (Q.C()*Q)-dualquat<double>();
         if (R.dot(R) > THRESHOLD) {
             std::cout << "left conjugate inverse" << R.dot(R) << std::endl;
             R.print();
         }
 
         // check right conjugate inverse
-        R = (Q^Q.C())-dualquat<double>();
+        R = (Q*Q.C())-dualquat<double>();
         if (R.dot(R) > THRESHOLD) {
             std::cout << "right conjugate inverse" << R.dot(R) << std::endl;
             R.print();
