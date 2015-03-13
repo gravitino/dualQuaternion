@@ -3,7 +3,7 @@
 
 int main () {
 
-	using namespace average;
+    using namespace average;
 
     std::mt19937 engine;
     engine.seed(0);
@@ -11,14 +11,14 @@ int main () {
     
     size_t N = 10000;
     
-	auto q0 = quat<double>(0, 1, 1, 1).exp(); q0.print();
+    auto q0 = quat<double>(0, 1, 1, 1).exp(); q0.print();
 
     std::vector<double> weights(N, 1.0/N);
     std::vector<quat<double>> quats;
 
     for (size_t i = 0; i < N; i++)
-    	quats.push_back( q0*quat<double>(1+dist(engine), dist(engine), 
-    		                               dist(engine), dist(engine)).N());
+        quats.push_back( q0*quat<double>(1+dist(engine), dist(engine), 
+                                           dist(engine), dist(engine)).N());
 
     QLA(quats).print();
     std::cout << QLA(quats).logdist(q0) << std::endl;
@@ -36,10 +36,10 @@ int main () {
     std::vector<dualquat<double>> Quats;
 
     for (size_t i = 0; i < N; i++)
-    	Quats.push_back(Q0*dualquat<double>(1+dist(engine), dist(engine), 
-    		                                  dist(engine), dist(engine),
-    		                                  dist(engine), dist(engine),
-    		                                  dist(engine), dist(engine)).N());
+        Quats.push_back(Q0*dualquat<double>(1+dist(engine), dist(engine), 
+                                              dist(engine), dist(engine),
+                                              dist(engine), dist(engine),
+                                              dist(engine), dist(engine)).N());
 
     DLA(Quats).print();
     std::cout << DLA(Quats).logdist(Q0) << std::endl;

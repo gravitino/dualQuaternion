@@ -89,7 +89,7 @@ struct quat {
 
         assert(w*w < EPS(value_t));
 
-        value_t dst = std::sqrt(x*x+y*y+z*z+EPS(value_t));
+        value_t dst = std::sqrt(x*x+y*y+z*z);
         value_t fac = std::sin(dst)/dst;        
 
         return quat<value_t>(std::cos(dst), x*fac, y*fac, z*fac);
@@ -113,8 +113,11 @@ struct quat {
 
         assert(isunit());
 
-        const value_t inv = 1.0/std::sqrt(x*x+y*y+z*z+EPS(value_t));
-        const value_t fac = std::acos(w > 1 ? 1 : w < -1 ? -1 : w)*inv;
+        if ((w*w-1)*(w*w-1) < EPS(value_t))
+        	return quat<value_t>(0);
+
+        const value_t inv = 1.0/std::sqrt(x*x+y*y+z*z);
+        const value_t fac = std::acos(w)*inv;
 
         return quat<value_t> (0, x*fac, y*fac, z*fac);
     }
@@ -292,7 +295,7 @@ struct dualquat {
         if (x*x+y*y+z*z < EPS(value_t))
         	return dualquat<value_t>(1, 0, 0, 0, 0, X, Y, Z);
 
-        const value_t theta = 2.0*std::sqrt(x*x+y*y+z*z+EPS(value_t));
+        const value_t theta = 2.0*std::sqrt(x*x+y*y+z*z);
         const value_t invvv = 2.0/theta;
         const value_t lx = x*invvv;
         const value_t ly = y*invvv;
@@ -338,11 +341,11 @@ struct dualquat {
 
         assert(isunit());
 
-        if ((w-1)*(w-1) < EPS(value_t))
+        if ((w*w-1)*(w*w-1) < EPS(value_t))
         	return dualquat<value_t>(0, 0, 0, 0, 0, X, Y, Z);
         
-        const value_t theta =  2.0*std::acos(w > 1 ? 1 : w < -1 ? -1 : w);
-        const value_t invvv =  0.5/std::sqrt(x*x+y*y+z*z+EPS(value_t));
+        const value_t theta =  2.0*std::acos(w);
+        const value_t invvv =  0.5/std::sqrt(x*x+y*y+z*z);
         const value_t pitch = -4.0*W*invvv;
         const value_t alpha =  pitch*w;
 
