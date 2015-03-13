@@ -356,6 +356,16 @@ struct dualquat {
     
     }
 
+    dualquat<value_t> fakelog () const {
+
+        assert(isunit());
+        
+        const auto& real = real().log();
+        const auto& dual = dual().real().C();
+
+        return dualquat<value_t>(real, dual);
+    }
+
     value_t dot(const dualquat<value_t> other) const {
         return w*other.w+x*other.x+y*other.y+z*other.z+
                W*other.W+X*other.X+Y*other.Y+Z*other.Z;
