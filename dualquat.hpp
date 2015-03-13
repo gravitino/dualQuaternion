@@ -16,7 +16,7 @@ struct quat {
 
     value_t w, x, y, z;
 
-    quat() : w(1), x(0), y(0), z(0) {}
+    quat(bool e=1) : w(e), x(0), y(0), z(0) {}
 
     quat(value_t w_, 
          value_t x_, 
@@ -159,22 +159,24 @@ struct dualquat {
     
     value_t w, x, y, z, W, X, Y, Z;
 
-    dualquat() : w(1) , x(0), y(0), z(0), W(0), X(0), Y(0), Z(0) {};
+    dualquat(bool e=true) : w(e), x(0), y(0), z(0), 
+                            W(0), X(0), Y(0), Z(0) {};
 
-    dualquat(value_t w_, 
-             value_t x_, 
-             value_t y_, 
-             value_t z_,
-             value_t W_, 
-             value_t X_, 
-             value_t Y_, 
-             value_t Z_) : w(w_), x(x_), y(y_), z(z_), 
-                           W(W_), X(X_), Y(Y_), Z(Z_) {}
+    dualquat(const value_t w_, 
+             const value_t x_, 
+             const value_t y_, 
+             const value_t z_,
+             const value_t W_, 
+             const value_t X_, 
+             const value_t Y_, 
+             const value_t Z_) : w(w_), x(x_), y(y_), z(z_), 
+                                 W(W_), X(X_), Y(Y_), Z(Z_) {}
 
-    dualquat(const quat<value_t>& real, const quat<value_t>& dual) {
-        w = real.w; x = real.x; y = real.y; z = real.z;
-        W = dual.w; X = dual.x; Y = dual.y; Z = dual.z; 
-    }
+    dualquat(const quat<value_t>& real, 
+    	     const quat<value_t>& dual) : w(real.w), x(real.x),
+                                          y(real.y), z(real.z),
+                                          W(dual.w), X(dual.x),
+                                          Y(dual.y), Z(dual.z) {}
 
     quat<value_t> real () const {
         return quat<value_t>(w, x, y, z);
@@ -287,6 +289,9 @@ struct dualquat {
 
         assert(w*w < EPS(value_t) && W*W < EPS(value_t));
 
+        if (x*x+y*y+z*z < EPS(value_t))
+        	return dualquat<value_t>(1, 0, 0, 0, 0, X, Y, Z);
+
         const value_t theta = 2.0*std::sqrt(x*x+y*y+z*z+EPS(value_t));
         const value_t invvv = 2.0/theta;
         const value_t lx = x*invvv;
@@ -332,6 +337,9 @@ struct dualquat {
     dualquat<value_t> log () const {
 
         assert(isunit());
+
+        if ((w-1)*(w-1) < EPS(value_t))
+        	return dualquat<value_t>(0, 0, 0, 0, 0, X, Y, Z);
         
         const value_t theta =  2.0*std::acos(w > 1 ? 1 : w < -1 ? -1 : w);
         const value_t invvv =  0.5/std::sqrt(x*x+y*y+z*z+EPS(value_t));
@@ -360,10 +368,10 @@ struct dualquat {
 
         assert(isunit());
         
-        const auto& real = real().log();
-        const auto& dual = dual().real().C();
+        const auto& lower = real().log();
+        const auto& upper = dual()*real().C();
 
-        return dualquat<value_t>(real, dual);
+        return dualquat<value_t>(lower, upper);
     }
 
     value_t dot(const dualquat<value_t> other) const {
@@ -381,15 +389,8 @@ struct dualquat {
     }
 
     value_t kinnorm () const {
-        const auto& Omega = real().log();
-        const auto& Veloc = dual()*real().C();
-        return Omega.dot(Omega)+Veloc.dot(Veloc);
-    }
-
-    value_t kilnorm () const {
-        const auto& Omega = real().log();
-        const auto& Veloc = dual()*real().C();
-        return Omega.dot(Omega)+2*Veloc.dot(Omega);
+        const auto& generator = fakelog();
+        return generator.dot(generator);
     }
 
     value_t eucdist (const dualquat<value_t>& other) const {
@@ -406,6 +407,11 @@ struct dualquat {
 
     value_t logdist (const dualquat<value_t>& other) const {
         const auto& difference = ((*this)*(other.C())).log();
+        return difference.dot(difference);
+    }
+
+    value_t kindist  (const dualquat<value_t>& other) const {
+    	const auto& difference = ((*this)*(other.C())).fakelog();
         return difference.dot(difference);
     }
 
@@ -426,7 +432,7 @@ namespace average {
 template <class value_t>
 quat<value_t> QLA (const std::vector<quat<value_t>>& quats) {
 
-    quat<value_t> result(0, 0, 0, 0);
+    quat<value_t> result(0);
 
     for (size_t i = 0; i < quats.size(); i++)
         result += quats[i];
@@ -440,7 +446,7 @@ quat<value_t> QIA (const std::vector<quat<value_t>>& quats) {
     quat<value_t> b = QLA(quats);
     
     auto logmean = [&]() {
-        quat<value_t> avg(0, 0, 0, 0);
+        quat<value_t> avg(0);
         for (size_t i = 0; i < quats.size(); i++)
             avg += (b.C()*quats[i]).log();
         return avg/quats.size();
@@ -472,7 +478,7 @@ quat<value_t> QLB (const std::vector<quat<value_t>>& quats,
 
     assert(quats.size() == weights.size());
 
-    quat<value_t> result(0, 0, 0, 0);
+    quat<value_t> result(0);
 
     for (size_t i = 0; i < quats.size(); i++)
         result += quats[i]*weights[i];
@@ -490,7 +496,7 @@ quat<value_t> QIB (const std::vector<quat<value_t>>& quats,
     quat<value_t> b = QLB(quats, weights);
     
     auto logmean = [&]() {
-        quat<value_t> avg(0, 0, 0, 0);
+        quat<value_t> avg(0);
         for (size_t i = 0; i < quats.size(); i++)
             avg += ((b.C())*quats[i]).log()*weights[i];
         return avg;
@@ -519,7 +525,7 @@ quat<value_t> QIB (const std::vector<quat<value_t>>& quats,
 template <class value_t>
 dualquat<value_t> DLA (const std::vector<dualquat<value_t>>& quats) {
 
-    dualquat<value_t> result(0, 0, 0, 0, 0, 0, 0, 0);
+    dualquat<value_t> result(0);
 
     for (size_t i = 0; i < quats.size(); i++)
         result += quats[i];
@@ -533,7 +539,7 @@ dualquat<value_t> DIA (const std::vector<dualquat<value_t>>& quats) {
     dualquat<value_t> b = DLA(quats);
     
     auto logmean = [&]() {
-        dualquat<value_t> avg(0, 0, 0, 0, 0, 0, 0, 0);
+        dualquat<value_t> avg(0);
         for (size_t i = 0; i < quats.size(); i++)
             avg += (b.C()*quats[i]).log();
         return avg/quats.size();
@@ -567,7 +573,7 @@ dualquat<value_t> DLB (const std::vector<dualquat<value_t>>& quats,
 
     assert(quats.size() == weights.size());
 
-    dualquat<value_t> result(0, 0, 0, 0, 0, 0, 0, 0);
+    dualquat<value_t> result(0);
 
     for (size_t i = 0; i < quats.size(); i++)
         result += quats[i]*weights[i];
@@ -585,7 +591,7 @@ dualquat<value_t> DIB (const std::vector<dualquat<value_t>>& quats,
     dualquat<value_t> b = DLB(quats, weights);
     
     auto logmean = [&]() {
-        dualquat<value_t> avg(0, 0, 0, 0, 0, 0, 0, 0);
+        dualquat<value_t> avg(0);
         for (size_t i = 0; i < quats.size(); i++)
             avg += ((b.C())*quats[i]).log()*weights[i];
         return avg;

@@ -2,7 +2,7 @@
 #include <random>
 
 #define NUM_TESTS (1<<22)
-#define THRESHOLD (1E-6)
+#define THRESHOLD (1E-8)
 
 int main () {
 
